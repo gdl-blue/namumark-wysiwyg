@@ -44,7 +44,7 @@
 			
 			html.find('font.text-color').each(function() {
 				var txtcol;
-				$(this).replaceWith("{{{#" + ((txtcol = $(this).attr('color')).startsWith('#') ? txtcol : ('#' + txtcol) ) + ' ' + $(this).text() + "}}}");
+				$(this).replaceWith("{{{" + ((txtcol = $(this).attr('color')).startsWith('#') ? txtcol : ('#' + txtcol) ) + ' ' + $(this).text() + "}}}");
 			});
 			
 			html.find('span.text-size').each(function() {
@@ -77,7 +77,7 @@
 			$('textarea#textInput').val(html.text());
 		});
 	
-		/* https://stackoverflow.com/questions/3997659/replace-selected-text-in-contenteditable-div */
+		/* https://stackoverflow.com/questions/3997659 */
 		function replaceSelectedText(replacementText) {
 			var range = getSelection().getRangeAt(0);
 			range.deleteContents();
@@ -111,8 +111,8 @@
 			}
 			
 			var range    = getSelection().getRangeAt(0);
-			var fulltext = range.startContainer.data || '내용';
-			var text     = fulltext.slice(range.startOffset, range.endOffset) || '내용';
+			var fulltext = range.startContainer.data || '';
+			var text     = fulltext.slice(range.startOffset, range.endOffset) || (btn.attr('data-default') || '내용');
 			
 			replaceSelectedText(s + text + e);
 		});
@@ -159,14 +159,18 @@
 	<button
 		class=insert-markup
 		
-		data-start="<table class=&quot;wiki-table&quot;><tbody><tr><td>내용"
+		data-default="표 내용"
+		
+		data-start="<table class=&quot;wiki-table&quot;><tbody><tr><td>"
 		data-end="</td></tr></tbody></table>"
 	>표</button>
 	
 	<button
 		class=insert-markup
 		
-		data-start="<h2 class=wiki-heading>제목"
+		data-default="문단 제목"
+		
+		data-start="<h2 class=wiki-heading>"
 		data-end="</h2>"
 	>문단</button>
 	
