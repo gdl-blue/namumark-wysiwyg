@@ -3,6 +3,25 @@
 
 <script>
 	$(function() {
+		var txtszz = {
+			'+1': '1.28889em',
+			'+2': '1.38889em',
+			'+3': '1.48144em',
+			'+4': '1.574em',
+			'+5': '1.66667em',
+			
+			'-1': '0.92589em',
+			'-2': '0.83333em',
+			'-3': '0.74067em',
+			'-4': '0.64811em',
+			'-5': '0.62222em'
+		};
+		
+		var txtrsz = {};
+		for(var i in txtszz) {
+			txtrsz[txtszz[i]] = i;
+		}
+	
 		$('button#convert-to-namumark').click(function() {
 			var html = $('<div>' + $('#visualInput').html() + '</div>');
 			var ret = html.html();
@@ -21,6 +40,19 @@
 			
 			html.find('del').each(function() {
 				$(this).replaceWith("--" + $(this).text() + "--");
+			});
+			
+			html.find('font.text-color').each(function() {
+				var txtcol;
+				$(this).replaceWith("{{{#" + ((txtcol = $(this).attr('color')).startsWith('#') ? txtcol : ('#' + txtcol) ) + ' ' + $(this).text() + "}}}");
+			});
+			
+			html.find('span.text-size').each(function() {
+				$(this).replaceWith("{{{" + txtrsz[$(this)[0].style.fontSize] + ' ' + $(this).text() + "}}}");
+			});
+			
+			html.find('h2').each(function() {
+				$(this).replaceWith("\n== " + $(this).text() + " ==\n");
 			});
 			
 			html.find('table').each(function() {
@@ -47,20 +79,14 @@
 	
 		/* https://stackoverflow.com/questions/3997659/replace-selected-text-in-contenteditable-div */
 		function replaceSelectedText(replacementText) {
-			var sel, range;
-			if (window.getSelection) {
-				sel = window.getSelection();
-				if(sel.rangeCount) {
-					range = sel.getRangeAt(0);
-					range.deleteContents();
-					
-					range.insertNode($(replacementText)[0]);
-				}
-			} else if (document.selection && document.selection.createRange) {
-				range = document.selection.createRange();
-				range.text = replacementText;
-			}
+			var range = getSelection().getRangeAt(0);
+			range.deleteContents();
+			range.insertNode($(replacementText)[0]);
 		}
+		
+		$('#color-dialog').change(function() {
+			$('button.insert-markup#text-color-markup').attr('data-set', 'true').click();
+		});
 	
 		$('.insert-markup').click(function() {
 			var btn = $(this);
@@ -68,10 +94,26 @@
 			var e = btn.attr('data-end');
 			var editor = $('#visualInput');
 			
+			switch(btn.attr('id') || '') {
+				case 'text-color-markup':
+					if(btn.attr('data-set') != 'true') {
+						$('#color-dialog').click();
+						return;
+					} else {
+						s += $('#color-dialog').val() + '">';
+						btn.removeAttr('data-set');
+					}
+				break; case 'text-size-markup':
+					var size = String(Number(prompt('글자의 크기를 쓰십시오(-5 ~ 5)')) || 0);
+					if(Number(size) > 0) size = '+' + size;
+					
+					s += txtszz[size] + ';">';
+			}
+			
 			var range    = getSelection().getRangeAt(0);
 			var fulltext = range.startContainer.data || '내용';
-			var text     = fulltext.slice(range.startOffset, range.endOffset);
-			console.log(text)
+			var text     = fulltext.slice(range.startOffset, range.endOffset) || '내용';
+			
 			replaceSelectedText(s + text + e);
 		});
 	});
@@ -82,7 +124,6 @@
 		padding: 6px 8px 6px 8px;
 		border: 2px inset #ccc;
 		border-radius: 6px;
-		font-family: monospace;
 	}
 </style>
 
@@ -118,11 +159,38 @@
 	<button
 		class=insert-markup
 		
-		data-noreplace=true
-		
 		data-start="<table class=&quot;wiki-table&quot;><tbody><tr><td>내용"
 		data-end="</td></tr></tbody></table>"
 	>표</button>
+	
+	<button
+		class=insert-markup
+		
+		data-start="<h2 class=wiki-heading>제목"
+		data-end="</h2>"
+	>문단</button>
+	
+	<button
+		id=text-color-markup
+		class=insert-markup
+		
+		data-set=false
+		
+		data-start="<font class=text-color color=&quot;"
+		data-end="</font>"
+	>글자색</button>
+	
+	<button
+		id=text-size-markup
+		class=insert-markup
+		
+		data-set=false
+		
+		data-start="<span class=text-size style=&quot;font-size: "
+		data-end="</span>"
+	>글자크기</button>
+	
+	<input type=color hidden id=color-dialog />
 </div>
 
 <div contenteditable id=visualInput class=wiki-article>dfsfdsfsdf</div>
