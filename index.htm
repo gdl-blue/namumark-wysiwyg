@@ -1,0 +1,133 @@
+<meta charset=utf8 />
+<script src='https://code.jquery.com/jquery-2.1.4.js'></script>
+
+<script>
+	$(function() {
+		$('button#convert-to-namumark').click(function() {
+			var html = $('<div>' + $('#visualInput').html() + '</div>');
+			var ret = html.html();
+			
+			html.find('strong').each(function() {
+				$(this).replaceWith("'''" + $(this).text() + "'''");
+			});
+			
+			html.find('i').each(function() {
+				$(this).replaceWith("''" + $(this).text() + "''");
+			});
+			
+			html.find('u').each(function() {
+				$(this).replaceWith("__" + $(this).text() + "__");
+			});
+			
+			html.find('del').each(function() {
+				$(this).replaceWith("--" + $(this).text() + "--");
+			});
+			
+			html.find('table').each(function() {
+				var ret = '\n';
+				$(this).find('tr').each(function() {
+					$(this).find('td').each(function() {
+						ret += '||' + $(this).text();
+					});
+					
+					ret += '||\n';
+				});
+				
+				ret += '\n';
+			
+				$(this).replaceWith(ret);
+			});
+			
+			html.find('br').each(function() {
+				$(this).replaceWith("\n");
+			});
+			
+			$('textarea#textInput').val(html.text());
+		});
+	
+		/* https://stackoverflow.com/questions/3997659/replace-selected-text-in-contenteditable-div */
+		function replaceSelectedText(replacementText) {
+			var sel, range;
+			if (window.getSelection) {
+				sel = window.getSelection();
+				if(sel.rangeCount) {
+					range = sel.getRangeAt(0);
+					range.deleteContents();
+					
+					range.insertNode($(replacementText)[0]);
+				}
+			} else if (document.selection && document.selection.createRange) {
+				range = document.selection.createRange();
+				range.text = replacementText;
+			}
+		}
+	
+		$('.insert-markup').click(function() {
+			var btn = $(this);
+			var s = btn.attr('data-start');
+			var e = btn.attr('data-end');
+			var editor = $('#visualInput');
+			
+			var range    = getSelection().getRangeAt(0);
+			var fulltext = range.startContainer.data || '내용';
+			var text     = fulltext.slice(range.startOffset, range.endOffset);
+			console.log(text)
+			replaceSelectedText(s + text + e);
+		});
+	});
+</script>
+
+<style>
+	#visualInput {
+		padding: 6px 8px 6px 8px;
+		border: 2px inset #ccc;
+		border-radius: 6px;
+		font-family: monospace;
+	}
+</style>
+
+<div>
+	<button
+		class=insert-markup
+		
+		data-start="<strong>"
+		data-end="</strong>"
+	>굵게</button>
+	
+	<button
+		class=insert-markup
+		
+		data-start="<i>"
+		data-end="</i>"
+	>기울게</button>
+	
+	<button
+		class=insert-markup
+		
+		data-start="<u>"
+		data-end="</u>"
+	>밑줄</button>
+	
+	<button
+		class=insert-markup
+		
+		data-start="<del>"
+		data-end="</del>"
+	>취소선</button>
+	
+	<button
+		class=insert-markup
+		
+		data-noreplace=true
+		
+		data-start="<table class=&quot;wiki-table&quot;><tbody><tr><td>내용"
+		data-end="</td></tr></tbody></table>"
+	>표</button>
+</div>
+
+<div contenteditable id=visualInput class=wiki-article>dfsfdsfsdf</div>
+
+<hr />
+
+<button id=convert-to-namumark>나무마크로 치환</button><br />
+<textarea id=textInput>dfsfdsfsdf</textarea>
