@@ -47,7 +47,6 @@
 			
 			html.find('font.text-color').each(function() {
 				var txtcol;
-				alert(1);
 				$(this).replaceWith("{{{" + ((txtcol = $(this).attr('color')).startsWith('#') ? txtcol : ('#' + txtcol) ) + ' ' + $(this).text() + "}}}");
 			});
 			
