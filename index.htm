@@ -1,7 +1,10 @@
+<title>나무마크 시각 편집기 [버전 1.3.0] - 이 프로그램은 제작자의 허락없이 수정, 재배포, 사용이 가능한 자유 소프트웨어입니다</title>
 <meta charset=utf8 />
 <script src='https://code.jquery.com/jquery-2.1.4.js'></script>
 
 <script>
+	document.execCommand('enableInlineTableEditing', 0, 1);
+
 	$(function() {
 		var txtszz = {
 			'+1': '1.28889em',
@@ -26,7 +29,7 @@
 			var html = $('<div>' + $('#visualInput').html() + '</div>');
 			var ret = html.html();
 			
-			html.find('strong').each(function() {
+			html.find('b').each(function() {
 				$(this).replaceWith("'''" + $(this).text() + "'''");
 			});
 			
@@ -44,6 +47,7 @@
 			
 			html.find('font.text-color').each(function() {
 				var txtcol;
+				alert(1);
 				$(this).replaceWith("{{{" + ((txtcol = $(this).attr('color')).startsWith('#') ? txtcol : ('#' + txtcol) ) + ' ' + $(this).text() + "}}}");
 			});
 			
@@ -76,23 +80,22 @@
 			
 			$('textarea#textInput').val(html.text());
 		});
-	
-		/* https://stackoverflow.com/questions/3997659 */
-		function replaceSelectedText(replacementText) {
-			var range = getSelection().getRangeAt(0);
-			range.deleteContents();
-			range.insertNode($(replacementText)[0]);
-		}
 		
 		$('#color-dialog').change(function() {
 			$('button.insert-markup#text-color-markup').attr('data-set', 'true').click();
 		});
 	
 		$('.insert-markup').click(function() {
-			var btn = $(this);
-			var s = btn.attr('data-start');
-			var e = btn.attr('data-end');
-			var editor = $('#visualInput');
+			var btn     = $(this);
+			var s       = btn.attr('data-start');
+			var e       = btn.attr('data-end');
+			var editor  = $('#visualInput');
+			var command = btn.attr('action');
+			var args    = btn.attr('action-args');
+			
+			if(command) {
+				return document.execCommand(command, 0, args || null);
+			}
 			
 			switch(btn.attr('id') || '') {
 				case 'text-color-markup':
@@ -110,20 +113,22 @@
 					s += txtszz[size] + ';">';
 			}
 			
-			var range    = getSelection().getRangeAt(0);
-			var fulltext = range.startContainer.data || '';
-			var text     = fulltext.slice(range.startOffset, range.endOffset) || (btn.attr('data-default') || '내용');
-			
-			replaceSelectedText(s + text + e);
+			var range = getSelection().getRangeAt(0);
+			var text  = range.extractContents();
+			var wrap  = $(s + e)[0];
+			wrap.appendChild(text);
+			range.insertNode(wrap);
 		});
 	});
 </script>
 
 <style>
-	#visualInput {
+	#visualInput, #textInput {
 		padding: 6px 8px 6px 8px;
 		border: 2px inset #ccc;
 		border-radius: 6px;
+		max-width: 600px;
+		height: 350px;
 	}
 </style>
 
@@ -131,15 +136,13 @@
 	<button
 		class=insert-markup
 		
-		data-start="<strong>"
-		data-end="</strong>"
+		action=bold
 	>굵게</button>
 	
 	<button
 		class=insert-markup
 		
-		data-start="<i>"
-		data-end="</i>"
+		action=italic
 	>기울게</button>
 	
 	<button
@@ -175,6 +178,15 @@
 	>문단</button>
 	
 	<button
+		class=insert-markup
+		
+		data-default=""
+		
+		data-start="<h2 class=wiki-heading>"
+		data-end="</h2>"
+	>문단</button>
+	
+	<button
 		id=text-color-markup
 		class=insert-markup
 		
@@ -197,9 +209,9 @@
 	<input type=color hidden id=color-dialog />
 </div>
 
-<div contenteditable id=visualInput class=wiki-article>dfsfdsfsdf</div>
+<div contenteditable id=visualInput class=wiki-article>여기에 내용을 입력해주세요..!</div>
 
 <hr />
 
 <button id=convert-to-namumark>나무마크로 치환</button><br />
-<textarea id=textInput>dfsfdsfsdf</textarea>
+<textarea id=textInput style="width: 100%;" placeholder="버튼을 누르면 나무마크 내용이 나타납니다..."></textarea>
