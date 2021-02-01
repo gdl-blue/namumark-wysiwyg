@@ -1,4 +1,4 @@
-<title>나무마크 시각 편집기 [버전 1.3.0] - 이 프로그램은 제작자의 허락없이 수정, 재배포, 사용이 가능한 자유 소프트웨어입니다</title>
+<title>나무마크 시각 편집기 [버전 1.3.1] - 이 프로그램은 제작자의 허락없이 수정, 재배포, 사용이 가능한 자유 소프트웨어입니다</title>
 <meta charset=utf8 />
 <script src='https://code.jquery.com/jquery-2.1.4.js'></script>
 
@@ -29,6 +29,15 @@
 			var html = $('<div>' + $('#visualInput').html() + '</div>');
 			var ret = html.html();
 			
+			html.find('font.text-color').each(function() {
+				var txtcol;
+				$(this).replaceWith("{{{" + ((txtcol = $(this).attr('color')).startsWith('#') ? txtcol : ('#' + txtcol) ) + ' ' + $(this).text() + "}}}");
+			});
+			
+			html.find('span.text-size').each(function() {
+				$(this).replaceWith("{{{" + txtrsz[$(this)[0].style.fontSize] + ' ' + $(this).text() + "}}}");
+			});
+			
 			html.find('b').each(function() {
 				$(this).replaceWith("'''" + $(this).text() + "'''");
 			});
@@ -43,15 +52,6 @@
 			
 			html.find('del').each(function() {
 				$(this).replaceWith("--" + $(this).text() + "--");
-			});
-			
-			html.find('font.text-color').each(function() {
-				var txtcol;
-				$(this).replaceWith("{{{" + ((txtcol = $(this).attr('color')).startsWith('#') ? txtcol : ('#' + txtcol) ) + ' ' + $(this).text() + "}}}");
-			});
-			
-			html.find('span.text-size').each(function() {
-				$(this).replaceWith("{{{" + txtrsz[$(this)[0].style.fontSize] + ' ' + $(this).text() + "}}}");
 			});
 			
 			html.find('h2').each(function() {
@@ -171,15 +171,6 @@
 		class=insert-markup
 		
 		data-default="문단 제목"
-		
-		data-start="<h2 class=wiki-heading>"
-		data-end="</h2>"
-	>문단</button>
-	
-	<button
-		class=insert-markup
-		
-		data-default=""
 		
 		data-start="<h2 class=wiki-heading>"
 		data-end="</h2>"
